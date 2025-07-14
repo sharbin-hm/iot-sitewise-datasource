@@ -79,35 +79,27 @@ export const PropertyQueryEditor = ({ query, datasource, onChange }: SitewiseQue
 
   const onPropertyChange = useCallback(
     (sel: SelectableValue<string> | Array<SelectableValue<string>>) => {
-      const propertyIds: Set<string> = new Set();
-      if (Array.isArray(sel)) {
-        sel.forEach((s) => {
-          if (s.value) {
-            propertyIds.add(s.value);
-          }
-        });
-      } else if (sel.value) {
-        propertyIds.add(sel.value);
-      }
+      const selectedValues = Array.isArray(sel)
+        ? sel.map((s) => s.value).filter((v): v is string => !!v)
+        : sel.value
+          ? [sel.value]
+          : [];
 
       const newQuery = {
         ...query,
-        propertyIds: [...propertyIds],
+        propertyIds: selectedValues,
       } satisfies SitewiseQuery;
 
       // Make sure the selected aggregates are actually supported
       if (isAssetPropertyAggregatesQuery(newQuery)) {
-        newQuery.aggregates = newQuery.aggregates ?? [];
-        newQuery.propertyIds.forEach((propertyId) => {
-          const info = getAssetProperty(asset, propertyId);
-          if (info) {
-            newQuery.aggregates = newQuery.aggregates.filter((a) => aggReg.get(a).isValid(info));
-          }
+        const validAggregates = (newQuery.aggregates ?? []).filter((agg) => {
+          return newQuery.propertyIds?.every((propertyId) => {
+            const info = getAssetProperty(asset, propertyId);
+            return info && aggReg.get(agg)?.isValid(info);
+          });
         });
 
-        if (!newQuery.aggregates.length) {
-          newQuery.aggregates = [getDefaultAggregate()];
-        }
+        newQuery.aggregates = validAggregates.length > 0 ? validAggregates : [getDefaultAggregate()];
       }
 
       onChange(newQuery);
@@ -381,18 +373,20 @@ export const PropertyQueryEditor = ({ query, datasource, onChange }: SitewiseQue
           {showProp && (
             <EditorRow>
               <EditorFieldGroup>
-                <EditorField label="Property" htmlFor="property" width={30}>
+                <EditorField label="Properties" htmlFor="property" width={30}>
                   <Select
                     id="property"
                     inputId="property"
-                    aria-label="Property"
+                    aria-label="Properties"
                     // Disabled multi-selection until a better UX is designed around pairing assets and properties
-                    isMulti={false}
+                    isMulti={true}
                     isLoading={isLoading}
-                    options={assetProperties}
-                    value={currentAssetProperty}
-                    onChange={onPropertyChange}
-                    placeholder="Select a property"
+                    options={assetProperties} // SelectableValue<string>[]
+                    value={
+                      assetProperties.filter((o) => query.propertyIds?.includes(o.value ?? '')) // ensure value is an array
+                    }
+                    onChange={(v) => onPropertyChange(v as Array<SelectableValue<string>>)}
+                    placeholder="Select properties"
                     allowCustomValue
                     isClearable
                     isSearchable
