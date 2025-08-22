@@ -6,6 +6,7 @@ import { SitewiseQuery, SitewiseOptions } from 'types';
 import { SitewiseCompletionProvider } from 'language/autoComplete';
 import { SqlQueryBuilder } from '../sql-query-builder/SqlQueryBuilder';
 import { defaultSitewiseQueryState, SitewiseQueryState } from '../sql-query-builder/types';
+import AIAssistant from '../assistant/AIAssistantChat';
 
 type Props = QueryEditorProps<DataSource, SitewiseQuery, SitewiseOptions>;
 
@@ -43,21 +44,24 @@ export function RawQueryEditor(props: Props) {
       <Space v={1} />
 
       {mode === 'raw' ? (
-        <CodeEditor
-          language="sql"
-          showLineNumbers
-          showMiniMap={false}
-          value={query.rawSQL || datasource.defaultQuery}
-          onSave={(text) => onChange({ ...query, rawSQL: text })}
-          onBlur={(text) => onChange({ ...query, rawSQL: text })}
-          onBeforeEditorMount={(monaco) => {
-            if (SitewiseCompletionProvider.monaco === null) {
-              SitewiseCompletionProvider.monaco = monaco;
-              monaco.languages.registerCompletionItemProvider('sql', SitewiseCompletionProvider);
-            }
-          }}
-          height={'200px'}
-        />
+        <>
+          <CodeEditor
+            language="sql"
+            showLineNumbers
+            showMiniMap={false}
+            value={query.rawSQL || datasource.defaultQuery}
+            onSave={(text) => onChange({ ...query, rawSQL: text })}
+            onBlur={(text) => onChange({ ...query, rawSQL: text })}
+            onBeforeEditorMount={(monaco) => {
+              if (SitewiseCompletionProvider.monaco === null) {
+                SitewiseCompletionProvider.monaco = monaco;
+                monaco.languages.registerCompletionItemProvider('sql', SitewiseCompletionProvider);
+              }
+            }}
+            height={'200px'}
+          />
+          <AIAssistant />
+        </>
       ) : (
         <SqlQueryBuilder builderState={builderState} onChange={handleQueryChange} />
       )}
