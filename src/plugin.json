@@ -39,5 +39,18 @@
   "dependencies": {
     "grafanaDependency": ">=10.4.0",
     "plugins": []
+  },
+  "jsonData": {
+    "aiAssistant": {
+      "provider": "openai",
+      "azureEndpoint": "...",
+      "azureDeployment": "...",
+      "azureApiVersion": "..."
+    }
+  },
+  "secureJsonData": {
+    "azureApiKey": "...",
+    "bedrockAccessKey": "...",
+    "bedrockSecretKey": "..."
   }
 }

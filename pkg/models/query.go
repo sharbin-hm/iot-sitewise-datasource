@@ -73,3 +73,14 @@ func (query *BaseQuery) MigrateAssetProperty() {
 		query.PropertyAliases = []string{query.PropertyAlias}
 	}
 }
+
+type AIChatQuery struct {
+	BaseQuery
+	Prompt string `json:"prompt"`
+}
+
+type AISQLQuery struct {
+	BaseQuery
+	Prompt string `json:"prompt"`
+	Schema string `json:"schema"`
+}

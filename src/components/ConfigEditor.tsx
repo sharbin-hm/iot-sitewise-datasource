@@ -7,7 +7,12 @@ import {
   updateDatasourcePluginJsonDataOption,
   updateDatasourcePluginSecureJsonDataOption,
 } from '@grafana/data';
-import { SitewiseOptions, SitewiseSecureJsonData } from '../types';
+import {
+  AIAssistantDataSourceOptions,
+  AIAssistantSecureJsonData,
+  SitewiseOptions,
+  SitewiseSecureJsonData,
+} from '../types';
 import { ConnectionConfig, ConnectionConfigProps, Divider } from '@grafana/aws-sdk';
 import { config } from '@grafana/runtime';
 import { Alert, Button, Field, Input, SecureSocksProxySettings, Select } from '@grafana/ui';
@@ -26,6 +31,11 @@ const edgeAuthMethods: Array<SelectableValue<string>> = [
   { value: 'ldap', label: 'LDAP', description: 'LDAP-based authentication' },
 ];
 
+const providerOptions = [
+  { label: 'Azure OpenAI', value: 'azure' },
+  { label: 'Amazon Bedrock', value: 'bedrock' },
+];
+
 export function ConfigEditor(props: Props) {
   if (props.options.jsonData.defaultRegion === 'Edge') {
     return <EdgeConfig {...props} />;
@@ -37,6 +47,7 @@ export function ConfigEditor(props: Props) {
       {config.secureSocksDSProxyEnabled && gte(config.buildInfo.version, '10.0.0') && (
         <SecureSocksProxySettings options={props.options} onOptionsChange={props.onOptionsChange} />
       )}
+      <AIAssistantConfig {...props} />
     </div>
   );
 }
@@ -189,3 +200,117 @@ function EdgeConfig(props: Props) {
     </div>
   );
 }
+
+function AIAssistantConfig(props: Props) {
+  const { options, onOptionsChange } = props;
+  const { jsonData, secureJsonData } = options;
+
+  // --- helpers for clean updates ---
+  const updateJsonData = (key: keyof AIAssistantDataSourceOptions, value: string) => {
+    onOptionsChange({
+      ...options,
+      jsonData: {
+        ...jsonData,
+        aiAssistant: {
+          ...jsonData.aiAssistant,
+          [key]: value,
+        },
+      },
+    });
+  };
+
+  const updateSecureJsonData = (key: keyof AIAssistantSecureJsonData, value: string) => {
+    onOptionsChange({
+      ...options,
+      secureJsonData: {
+        ...secureJsonData,
+        [key]: value, // no nesting inside aiAssistant
+      },
+    });
+  };
+
+  return (
+    <div className="width-30">
+      <h4 className="page-heading">AI Provider Settings</h4>
+
+      <div className="gf-form-group">
+        <Select
+          value={providerOptions.find((o) => o.value === jsonData.aiAssistant?.provider)}
+          options={providerOptions}
+          onChange={(v) => updateJsonData('provider', v.value!)}
+        />
+      </div>
+
+      {jsonData.aiAssistant?.provider === 'azure' && (
+        <>
+          <div className="gf-form">
+            <Input
+              value={jsonData.aiAssistant?.azureEndpoint || ''}
+              placeholder="Azure Endpoint"
+              onChange={(e) => updateJsonData('azureEndpoint', e.currentTarget.value)}
+            />
+          </div>
+          <div className="gf-form">
+            <Input
+              value={jsonData.aiAssistant?.azureDeployment || ''}
+              placeholder="Azure Deployment Name"
+              onChange={(e) => updateJsonData('azureDeployment', e.currentTarget.value)}
+            />
+          </div>
+          <div className="gf-form">
+            <Input
+              value={jsonData.aiAssistant?.azureApiVersion || '2024-06-01-preview'}
+              placeholder="API Version"
+              onChange={(e) => updateJsonData('azureApiVersion', e.currentTarget.value)}
+            />
+          </div>
+          <div className="gf-form">
+            <Input
+              type="password"
+              placeholder="Azure API Key"
+              value={secureJsonData?.azureApiKey || ''}
+              onChange={(e) => updateSecureJsonData('azureApiKey', e.currentTarget.value)}
+            />
+          </div>
+        </>
+      )}
+
+      {jsonData.aiAssistant?.provider === 'bedrock' && (
+        <>
+          <div className="gf-form">
+            <Input
+              value={jsonData.aiAssistant?.bedrockRegion || ''}
+              placeholder="AWS Region (e.g. us-east-1)"
+              onChange={(e) => updateJsonData('bedrockRegion', e.currentTarget.value)}
+            />
+          </div>
+          <div className="gf-form">
+            <Input
+              value={jsonData.aiAssistant?.bedrockModelId || ''}
+              placeholder="Model ID (e.g. anthropic.claude-3-haiku-20240307-v1:0)"
+              onChange={(e) => updateJsonData('bedrockModelId', e.currentTarget.value)}
+            />
+          </div>
+          <div className="gf-form">
+            <Input
+              type="password"
+              placeholder="AWS Access Key"
+              value={secureJsonData?.bedrockAccessKey || ''}
+              onChange={(e) => updateSecureJsonData('bedrockAccessKey', e.currentTarget.value)}
+            />
+          </div>
+          <div className="gf-form">
+            <Input
+              type="password"
+              placeholder="AWS Secret Key"
+              value={secureJsonData?.bedrockSecretKey || ''}
+              onChange={(e) => updateSecureJsonData('bedrockSecretKey', e.currentTarget.value)}
+            />
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+export default AIAssistantConfig;

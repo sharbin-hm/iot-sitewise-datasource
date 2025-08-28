@@ -15,6 +15,7 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/proxy"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
+	"github.com/grafana/iot-sitewise-datasource/pkg/ai"
 	"github.com/grafana/iot-sitewise-datasource/pkg/models"
 	"github.com/grafana/iot-sitewise-datasource/pkg/sitewise/api"
 	"github.com/grafana/iot-sitewise-datasource/pkg/sitewise/client"
@@ -297,4 +298,43 @@ func (ds *Datasource) HandleExecuteQuery(ctx context.Context, req *backend.Query
 	return ds.invoke(ctx, req, &query.BaseQuery, func(ctx context.Context, sw client.SitewiseAPIClient) (framer.Framer, error) {
 		return api.ExecuteQuery(ctx, sw, *query)
 	})
+}
+
+func (ds *Datasource) getAIClient(ctx context.Context) (ai.Client, error) {
+	switch ds.cfg.AIAssistant.Provider {
+	case "openai":
+		return ai.NewOpenAIClient(ds.cfg)
+	case "bedrock":
+		return ai.NewBedrockClient(ds.cfg)
+	default:
+		return nil, fmt.Errorf("unknown AI provider: %s", ds.cfg.AIAssistant.Provider)
+	}
+}
+
+func (ds *Datasource) HandleAIChatQuery(ctx context.Context, req *backend.QueryDataRequest, query *models.AIChatQuery) (data.Frames, error) {
+	client, err := ds.getAIClient(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.Chat(ctx, query.Prompt)
+	if err != nil {
+		return nil, err
+	}
+
+	return framer.FrameAIChatResponse(query.Prompt, response), nil
+}
+
+func (ds *Datasource) HandleAISQLQuery(ctx context.Context, req *backend.QueryDataRequest, query *models.AISQLQuery) (data.Frames, error) {
+	client, err := ds.getAIClient(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	sql, err := client.GenerateSQL(ctx, query.Prompt, query.Schema)
+	if err != nil {
+		return nil, err
+	}
+
+	return framer.FrameAISQLResponse(query.Prompt, sql), nil
 }

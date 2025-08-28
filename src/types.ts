@@ -265,10 +265,34 @@ export interface SitewiseOptions extends AwsAuthDataSourceJsonData {
   // nothing for now
   edgeAuthMode?: string;
   edgeAuthUser?: string;
+  aiAssistant?: AIAssistantDataSourceOptions;
 }
 
 export interface SitewiseSecureJsonData extends AwsAuthDataSourceSecureJsonData {
   // nothing for now
   edgeAuthPass?: string;
   cert?: string;
+  // AI Assistant keys (flat, not nested)
+  azureApiKey?: string;
+  bedrockAccessKey?: string;
+  bedrockSecretKey?: string;
+}
+
+export interface AIAssistantDataSourceOptions {
+  provider?: 'azure' | 'bedrock';
+
+  // Azure OpenAI
+  azureEndpoint?: string;
+  azureDeployment?: string;
+  azureApiVersion?: string;
+
+  // Bedrock
+  bedrockRegion?: string;
+  bedrockModelId?: string;
+}
+
+export interface AIAssistantSecureJsonData {
+  azureApiKey?: string;
+  bedrockAccessKey?: string;
+  bedrockSecretKey?: string;
 }
