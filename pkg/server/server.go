@@ -30,6 +30,7 @@ var (
 	_ backend.QueryDataHandler      = (*Server)(nil)
 	_ backend.CheckHealthHandler    = (*Server)(nil)
 	_ instancemgmt.InstanceDisposer = (*Server)(nil)
+	_ backend.CallResourceHandler   = (*Server)(nil)
 )
 
 // QueryHandlerFunc is the function signature used for mux.HandleFunc
@@ -66,8 +67,6 @@ func getQueryHandlers(s *Server) *datasource.QueryTypeMux {
 	mux.HandleFunc(models.QueryTypeListAssetProperties, s.HandleListAssetProperties)
 	mux.HandleFunc(models.QueryTypeListTimeSeries, s.HandleListTimeSeries)
 	mux.HandleFunc(models.QueryTypeExecuteQuery, s.HandleExecuteQuery)
-	mux.HandleFunc(models.QueryTypeAIChat, s.HandleAIChat)
-	mux.HandleFunc(models.QueryTypeAISQL, s.HandleAISQL)
 
 	return mux
 }

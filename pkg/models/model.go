@@ -22,18 +22,11 @@ type ExecuteQuery struct {
 }
 
 type AIChatQuery struct {
-	BaseQuery
 	Prompt       string `json:"prompt"`
 	SystemPrompt string `json:"systemPrompt,omitempty"`
 }
 
-type AISQLResponse struct {
-	Prompt string `json:"prompt"`
-	SQL    string `json:"sql"`
-}
-
 type AISQLQuery struct {
-	BaseQuery
 	Prompt string `json:"prompt"`
 	Schema string `json:"schema,omitempty"`
 }
@@ -41,6 +34,11 @@ type AISQLQuery struct {
 type AIChatResponse struct {
 	Prompt   string `json:"prompt"`
 	Response string `json:"response"`
+}
+
+type AISQLResponse struct {
+	Prompt string `json:"prompt"`
+	SQL    string `json:"sql"`
 }
 
 func GetListAssetModelsQuery(dq *backend.DataQuery) (*ListAssetModelsQuery, error) {
