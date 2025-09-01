@@ -2,7 +2,9 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"math"
+	"net/http"
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
@@ -336,38 +338,50 @@ func (s *Server) handleExecuteQuery(ctx context.Context, req *backend.QueryDataR
 	}
 }
 
-func (s *Server) HandleAIChat(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
-	return processQueries(ctx, req, s.handleAIChatQuery), nil
+func (s *Server) handleAIChatResource(ctx context.Context, req *backend.CallResourceRequest, sender backend.CallResourceResponseSender) error {
+	var query models.AIChatQuery
+	if err := json.Unmarshal(req.Body, &query); err != nil {
+		return sender.Send(&backend.CallResourceResponse{
+			Status: http.StatusBadRequest,
+			Body:   []byte(err.Error()),
+		})
+	}
+
+	resp, err := s.Datasource.HandleAIChatQuery(ctx, &query)
+	if err != nil {
+		return sender.Send(&backend.CallResourceResponse{
+			Status: http.StatusInternalServerError,
+			Body:   []byte(err.Error()),
+		})
+	}
+
+	out, _ := json.Marshal(resp)
+	return sender.Send(&backend.CallResourceResponse{
+		Status: http.StatusOK,
+		Body:   out,
+	})
 }
 
-func (s *Server) HandleAISQL(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
-	return processQueries(ctx, req, s.handleAISQLQuery), nil
-}
-
-func (s *Server) handleAIChatQuery(ctx context.Context, req *backend.QueryDataRequest, q backend.DataQuery) backend.DataResponse {
-	query, err := models.GetAIChatQuery(&q)
-	if err != nil {
-		return DataResponseErrorUnmarshal(err)
+func (s *Server) handleAISQLResource(ctx context.Context, req *backend.CallResourceRequest, sender backend.CallResourceResponseSender) error {
+	var query models.AISQLQuery
+	if err := json.Unmarshal(req.Body, &query); err != nil {
+		return sender.Send(&backend.CallResourceResponse{
+			Status: http.StatusBadRequest,
+			Body:   []byte(err.Error()),
+		})
 	}
 
-	frames, err := s.Datasource.HandleAIChatQuery(ctx, req, query)
+	resp, err := s.Datasource.HandleAISQLQuery(ctx, &query)
 	if err != nil {
-		return DataResponseErrorRequestFailed(err)
+		return sender.Send(&backend.CallResourceResponse{
+			Status: http.StatusInternalServerError,
+			Body:   []byte(err.Error()),
+		})
 	}
 
-	return backend.DataResponse{Frames: frames}
-}
-
-func (s *Server) handleAISQLQuery(ctx context.Context, req *backend.QueryDataRequest, q backend.DataQuery) backend.DataResponse {
-	query, err := models.GetAISQLQuery(&q)
-	if err != nil {
-		return DataResponseErrorUnmarshal(err)
-	}
-
-	frames, err := s.Datasource.HandleAISQLQuery(ctx, req, query)
-	if err != nil {
-		return DataResponseErrorRequestFailed(err)
-	}
-
-	return backend.DataResponse{Frames: frames}
+	out, _ := json.Marshal(resp)
+	return sender.Send(&backend.CallResourceResponse{
+		Status: http.StatusOK,
+		Body:   out,
+	})
 }

@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/grafana/iot-sitewise-datasource/pkg/sitewise"
 
@@ -112,4 +113,19 @@ func (s *Server) CheckHealth(ctx context.Context, req *backend.CheckHealthReques
 
 func (s *Server) Dispose() {
 	close(s.closeCh)
+}
+
+func (s *Server) CallResource(ctx context.Context, req *backend.CallResourceRequest, sender backend.CallResourceResponseSender) error {
+	switch req.Path {
+	case "ai-chat":
+		return s.handleAIChatResource(ctx, req, sender)
+	case "ai-sql":
+		return s.handleAISQLResource(ctx, req, sender)
+	default:
+		// return 404
+		return sender.Send(&backend.CallResourceResponse{
+			Status: http.StatusNotFound,
+			Body:   []byte(`{"error":"not found"}`),
+		})
+	}
 }

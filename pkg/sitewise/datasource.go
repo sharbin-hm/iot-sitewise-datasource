@@ -311,7 +311,7 @@ func (ds *Datasource) getAIClient(ctx context.Context) (ai.Client, error) {
 	}
 }
 
-func (ds *Datasource) HandleAIChatQuery(ctx context.Context, req *backend.QueryDataRequest, query *models.AIChatQuery) (data.Frames, error) {
+func (ds *Datasource) HandleAIChatQuery(ctx context.Context, query *models.AIChatQuery) (*models.AIChatResponse, error) {
 	client, err := ds.getAIClient(ctx)
 	if err != nil {
 		return nil, err
@@ -322,10 +322,13 @@ func (ds *Datasource) HandleAIChatQuery(ctx context.Context, req *backend.QueryD
 		return nil, err
 	}
 
-	return framer.FrameAIChatResponse(query.Prompt, response), nil
+	return &models.AIChatResponse{
+		Prompt:   query.Prompt,
+		Response: response,
+	}, nil
 }
 
-func (ds *Datasource) HandleAISQLQuery(ctx context.Context, req *backend.QueryDataRequest, query *models.AISQLQuery) (data.Frames, error) {
+func (ds *Datasource) HandleAISQLQuery(ctx context.Context, query *models.AISQLQuery) (*models.AISQLResponse, error) {
 	client, err := ds.getAIClient(ctx)
 	if err != nil {
 		return nil, err
@@ -336,5 +339,8 @@ func (ds *Datasource) HandleAISQLQuery(ctx context.Context, req *backend.QueryDa
 		return nil, err
 	}
 
-	return framer.FrameAISQLResponse(query.Prompt, sql), nil
+	return &models.AISQLResponse{
+		Prompt: query.Prompt,
+		SQL:    sql,
+	}, nil
 }
