@@ -60,7 +60,7 @@ export function RawQueryEditor(props: Props) {
             }}
             height={'200px'}
           />
-          <AIAssistant />
+          <AIAssistant {...props} />
         </>
       ) : (
         <SqlQueryBuilder builderState={builderState} onChange={handleQueryChange} />

@@ -335,3 +335,39 @@ func (s *Server) handleExecuteQuery(ctx context.Context, req *backend.QueryDataR
 		Error:  nil,
 	}
 }
+
+func (s *Server) HandleAIChat(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
+	return processQueries(ctx, req, s.handleAIChatQuery), nil
+}
+
+func (s *Server) HandleAISQL(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
+	return processQueries(ctx, req, s.handleAISQLQuery), nil
+}
+
+func (s *Server) handleAIChatQuery(ctx context.Context, req *backend.QueryDataRequest, q backend.DataQuery) backend.DataResponse {
+	query, err := models.GetAIChatQuery(&q)
+	if err != nil {
+		return DataResponseErrorUnmarshal(err)
+	}
+
+	frames, err := s.Datasource.HandleAIChatQuery(ctx, req, query)
+	if err != nil {
+		return DataResponseErrorRequestFailed(err)
+	}
+
+	return backend.DataResponse{Frames: frames}
+}
+
+func (s *Server) handleAISQLQuery(ctx context.Context, req *backend.QueryDataRequest, q backend.DataQuery) backend.DataResponse {
+	query, err := models.GetAISQLQuery(&q)
+	if err != nil {
+		return DataResponseErrorUnmarshal(err)
+	}
+
+	frames, err := s.Datasource.HandleAISQLQuery(ctx, req, query)
+	if err != nil {
+		return DataResponseErrorRequestFailed(err)
+	}
+
+	return backend.DataResponse{Frames: frames}
+}

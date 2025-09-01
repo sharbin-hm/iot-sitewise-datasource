@@ -3,7 +3,10 @@ import { Alert, Button, IconButton, Input, Spinner, TextArea, RadioButtonGroup }
 import { buildSqlAssistantPrompt } from './utils/promptGenerator';
 import { providers, Provider } from './services/providers';
 
-export default function AIAssistant() {
+export default function AIAssistant(props: any) {
+  const {
+    datasource: { name },
+  } = props;
   const [query, setQuery] = useState('');
   const [result, setResult] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,7 +21,7 @@ export default function AIAssistant() {
       setResult('');
 
       const prompt = buildSqlAssistantPrompt();
-      const sql = await providers[provider](query, prompt);
+      const sql = await providers[provider](query, prompt, name);
 
       setResult(sql);
     } catch (err) {

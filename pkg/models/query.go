@@ -19,6 +19,8 @@ const (
 	QueryTypeListAssetProperties  = "ListAssetProperties"
 	QueryTypeListTimeSeries       = "ListTimeSeries"
 	QueryTypeExecuteQuery         = "ExecuteQuery"
+	QueryTypeAIChat               = "AIChat"
+	QueryTypeAISQL                = "AISQL"
 )
 
 const (
@@ -72,15 +74,4 @@ func (query *BaseQuery) MigrateAssetProperty() {
 	if query.PropertyAlias != "" {
 		query.PropertyAliases = []string{query.PropertyAlias}
 	}
-}
-
-type AIChatQuery struct {
-	BaseQuery
-	Prompt string `json:"prompt"`
-}
-
-type AISQLQuery struct {
-	BaseQuery
-	Prompt string `json:"prompt"`
-	Schema string `json:"schema"`
 }
