@@ -23,7 +23,7 @@ export default function AIAssistant(props: any) {
       const prompt = buildSqlAssistantPrompt();
       const sql = await providers[provider](query, prompt, name);
 
-      setResult(sql);
+      setResult((sql as any)?.response ?? sql);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred.');
     } finally {

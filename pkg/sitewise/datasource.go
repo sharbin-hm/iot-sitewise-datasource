@@ -302,7 +302,7 @@ func (ds *Datasource) HandleExecuteQuery(ctx context.Context, req *backend.Query
 
 func (ds *Datasource) getAIClient(ctx context.Context) (ai.Client, error) {
 	switch ds.cfg.AIAssistant.Provider {
-	case "openai":
+	case "azure":
 		return ai.NewOpenAIClient(ds.cfg)
 	case "bedrock":
 		return ai.NewBedrockClient(ds.cfg)
