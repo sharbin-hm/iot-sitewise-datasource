@@ -86,23 +86,3 @@ func GetExecuteQuery(dq *backend.DataQuery) (*ExecuteQuery, error) {
 	query.Query.MaxDataPoints = dq.MaxDataPoints
 	return query, nil
 }
-
-func GetAIChatQuery(dq *backend.DataQuery) (*AIChatQuery, error) {
-	query := &AIChatQuery{}
-	if err := json.Unmarshal(dq.JSON, query); err != nil {
-		return nil, err
-	}
-	query.QueryType = dq.QueryType
-	query.MaxDataPoints = int32(dq.MaxDataPoints)
-	return query, nil
-}
-
-func GetAISQLQuery(dq *backend.DataQuery) (*AISQLQuery, error) {
-	query := &AISQLQuery{}
-	if err := json.Unmarshal(dq.JSON, query); err != nil {
-		return nil, err
-	}
-	query.QueryType = dq.QueryType
-	query.MaxDataPoints = int32(dq.MaxDataPoints)
-	return query, nil
-}
