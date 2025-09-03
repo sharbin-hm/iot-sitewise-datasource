@@ -1,5 +1,5 @@
 import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
-import { accessKeyId, secretAccessKey } from './credentials';
+import { accessKeyId, secretAccessKey } from '../utils/credentials';
 
 export async function fetchSqlFromBedrock(userQuery: string, systemPrompt: string): Promise<string> {
   const client = new BedrockRuntimeClient({

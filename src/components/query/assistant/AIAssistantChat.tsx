@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Alert, Button, IconButton, Input, Spinner, TextArea, RadioButtonGroup } from '@grafana/ui';
 import { buildSqlAssistantPrompt } from './utils/promptGenerator';
-import { fetchAI, Provider, Mode } from './services/commonService';
+import { fetchAI, Provider, Mode } from './services';
 
 export default function AIAssistant(props: any) {
   const {
@@ -25,15 +25,7 @@ export default function AIAssistant(props: any) {
 
       const prompt = mode === 'sql' ? buildSqlAssistantPrompt() : 'You are a helpful assistant';
 
-      // Unified response shape from backend
-      const res = await fetchAI(provider, mode, query, prompt, name);
-
-      if (!res.success) {
-        throw new Error(res.error || 'Unknown error');
-      }
-
-      // The useful payload is always under res.data
-      const data = res.data?.response ?? JSON.stringify(res.data);
+      const data = await fetchAI(provider, mode, query, prompt, name);
       setResult(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred.');
@@ -72,7 +64,8 @@ export default function AIAssistant(props: any) {
           options={[
             { label: 'Azure OpenAI', value: 'azure' },
             { label: 'AWS Bedrock', value: 'bedrock' },
-            { label: 'Grafana LLM', value: 'grafanaLLM' },
+            { label: 'Grafana LLM', value: 'llm' },
+            { label: 'Backend', value: 'backend' },
           ]}
           value={provider}
           onChange={(v) => setProvider(v as Provider)}

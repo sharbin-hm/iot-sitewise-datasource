@@ -1,4 +1,4 @@
-import { endpoint, deployment, apiKey, apiVersion } from './credentials';
+import { endpoint, deployment, apiKey, apiVersion } from '../utils/credentials';
 
 export async function fetchSqlFromAzure(userQuery: string, systemPrompt: string): Promise<string> {
   if (!endpoint || !deployment || !apiVersion || !apiKey) {
