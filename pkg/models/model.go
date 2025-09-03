@@ -21,24 +21,16 @@ type ExecuteQuery struct {
 	sqlutil.Query
 }
 
-type AIChatQuery struct {
-	Prompt       string `json:"prompt"`
-	SystemPrompt string `json:"systemPrompt,omitempty"`
+type AIQuery struct {
+	Mode    string `json:"mode"`              // "chat" or "sql"
+	Prompt  string `json:"prompt"`            // user input
+	Context string `json:"context,omitempty"` // systemPrompt OR schema
 }
 
-type AISQLQuery struct {
-	Prompt string `json:"prompt"`
-	Schema string `json:"schema,omitempty"`
-}
-
-type AIChatResponse struct {
-	Prompt   string `json:"prompt"`
-	Response string `json:"response"`
-}
-
-type AISQLResponse struct {
-	Prompt string `json:"prompt"`
-	SQL    string `json:"sql"`
+type AIResponse struct {
+	Mode     string      `json:"mode"` // "chat" or "sql"
+	Prompt   string      `json:"prompt"`
+	Response interface{} `json:"response"` // LLM output (text or SQL)
 }
 
 func GetListAssetModelsQuery(dq *backend.DataQuery) (*ListAssetModelsQuery, error) {

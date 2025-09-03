@@ -24,10 +24,17 @@ export default function AIAssistant(props: any) {
       setResult('');
 
       const prompt = mode === 'sql' ? buildSqlAssistantPrompt() : 'You are a helpful assistant';
-      const response = await fetchAI(provider, mode, query, prompt, name);
 
-      // unified backend response
-      setResult(response?.response ?? response?.sql ?? JSON.stringify(response));
+      // Unified response shape from backend
+      const res = await fetchAI(provider, mode, query, prompt, name);
+
+      if (!res.success) {
+        throw new Error(res.error || 'Unknown error');
+      }
+
+      // The useful payload is always under res.data
+      const data = res.data?.response ?? JSON.stringify(res.data);
+      setResult(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred.');
     } finally {
@@ -50,6 +57,7 @@ export default function AIAssistant(props: any) {
 
   return (
     <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {/* Header + controls */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <h4 style={{ margin: 0 }}>AI Assistant</h4>
         <RadioButtonGroup

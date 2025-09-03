@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"math"
 	"net/http"
 
@@ -345,30 +344,27 @@ func (s *Server) handleAIResource(
 	sender backend.CallResourceResponseSender,
 	mode string,
 ) error {
-	// pick query struct based on mode
-	if mode == "chat" {
-		var query models.AIChatQuery
-		if err := json.Unmarshal(req.Body, &query); err != nil {
-			return sender.Send(errorResponse(http.StatusBadRequest, err))
-		}
-		resp, err := s.Datasource.HandleAIQuery(ctx, "chat", query.Prompt, query.SystemPrompt)
-		if err != nil {
-			return sender.Send(errorResponse(http.StatusInternalServerError, err))
-		}
-		return sender.Send(successResponse(resp))
+	// Unmarshal into unified AIQuery
+	var query models.AIQuery
+	if err := json.Unmarshal(req.Body, &query); err != nil {
+		return sender.Send(errorResponse(http.StatusBadRequest, err))
 	}
 
-	if mode == "sql" {
-		var query models.AISQLQuery
-		if err := json.Unmarshal(req.Body, &query); err != nil {
-			return sender.Send(errorResponse(http.StatusBadRequest, err))
-		}
-		resp, err := s.Datasource.HandleAIQuery(ctx, "sql", query.Prompt, query.Schema)
-		if err != nil {
-			return sender.Send(errorResponse(http.StatusInternalServerError, err))
-		}
-		return sender.Send(successResponse(resp))
+	// Force mode from URL/path param to avoid mismatch
+	query.Mode = mode
+
+	// Call datasource
+	resp, err := s.Datasource.HandleAIQuery(ctx, query.Mode, query.Prompt, query.Context)
+	if err != nil {
+		return sender.Send(errorResponse(http.StatusInternalServerError, err))
 	}
 
-	return sender.Send(errorResponse(http.StatusBadRequest, fmt.Errorf("unknown mode: %s", mode)))
+	// Wrap in unified response
+	out := models.AIResponse{
+		Mode:     query.Mode,
+		Prompt:   query.Prompt,
+		Response: resp,
+	}
+
+	return sender.Send(successResponse(out))
 }
