@@ -22,13 +22,11 @@ type ExecuteQuery struct {
 }
 
 type AIQuery struct {
-	Mode    string `json:"mode"`              // "chat" or "sql"
 	Prompt  string `json:"prompt"`            // user input
 	Context string `json:"context,omitempty"` // systemPrompt OR schema
 }
 
 type AIResponse struct {
-	Mode     string      `json:"mode"` // "chat" or "sql"
 	Prompt   string      `json:"prompt"`
 	Response interface{} `json:"response"` // LLM output (text or SQL)
 }

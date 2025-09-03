@@ -39,7 +39,7 @@ export async function fetchAI(
       break;
 
     case 'backend': {
-      const res = await callAIResource(`ai-${mode}`, { prompt: userQuery, context }, dsName);
+      const res = await callAIResource('ai', { prompt: userQuery, context }, dsName);
       if (!res.success) {
         throw new Error(res.error || 'Unknown backend error');
       }

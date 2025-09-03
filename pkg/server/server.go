@@ -121,10 +121,8 @@ func (s *Server) CallResource(
 	sender backend.CallResourceResponseSender,
 ) error {
 	switch req.Path {
-	case "ai-chat", "azure-ai-chat", "bedrock-ai-chat":
-		return s.handleAIResource(ctx, req, sender, "chat")
-	case "ai-sql", "azure-ai-sql", "bedrock-ai-sql":
-		return s.handleAIResource(ctx, req, sender, "sql")
+	case "ai":
+		return s.handleAIResource(ctx, req, sender)
 	default:
 		// return 404
 		return sender.Send(&backend.CallResourceResponse{

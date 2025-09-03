@@ -311,28 +311,14 @@ func (ds *Datasource) getAIClient(ctx context.Context) (ai.Client, error) {
 	}
 }
 
-func (ds *Datasource) HandleAIQuery(ctx context.Context, mode string, prompt string, extra string) (string, error) {
+func (ds *Datasource) HandleAIQuery(ctx context.Context, prompt string, extra string) (string, error) {
 	client, err := ds.getAIClient(ctx)
 	if err != nil {
 		return "", err
 	}
-
-	switch mode {
-	case "chat":
-		resp, err := client.Chat(ctx, prompt)
-		if err != nil {
-			return "", err
-		}
-		return resp, nil
-
-	case "sql":
-		sql, err := client.GenerateSQL(ctx, prompt, extra) // extra = schema
-		if err != nil {
-			return "", err
-		}
-		return sql, nil
-
-	default:
-		return "", fmt.Errorf("unknown mode: %s", mode)
+	resp, err := client.Chat(ctx, prompt, extra)
+	if err != nil {
+		return "", err
 	}
+	return resp, nil
 }

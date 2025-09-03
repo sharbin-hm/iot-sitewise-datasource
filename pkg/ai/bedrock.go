@@ -69,12 +69,12 @@ type anthropicResponse struct {
 	} `json:"content"`
 }
 
-func (c *BedrockClient) Chat(ctx context.Context, prompt string) (string, error) {
-	// build request
+// Unified Chat method (system prompt = contextPrompt)
+func (c *BedrockClient) Chat(ctx context.Context, userPrompt string, contextPrompt string) (string, error) {
 	req := anthropicRequest{
 		AnthropicVersion: "bedrock-2023-05-31",
 		MaxTokens:        500,
-		System:           "You are a helpful AI assistant for SQL generation.",
+		System:           contextPrompt,
 		Messages: []anthropicMessage{
 			{
 				Role: "user",
@@ -82,7 +82,7 @@ func (c *BedrockClient) Chat(ctx context.Context, prompt string) (string, error)
 					Type string `json:"type"`
 					Text string `json:"text"`
 				}{
-					{Type: "text", Text: prompt},
+					{Type: "text", Text: userPrompt},
 				},
 			},
 		},
@@ -114,8 +114,4 @@ func (c *BedrockClient) Chat(ctx context.Context, prompt string) (string, error)
 		return parsed.Content[0].Text, nil
 	}
 	return "No response", nil
-}
-
-func (c *BedrockClient) GenerateSQL(ctx context.Context, prompt string, schema string) (string, error) {
-	return c.Chat(ctx, fmt.Sprintf("Given schema: %s\nGenerate SQL for: %s", schema, prompt))
 }

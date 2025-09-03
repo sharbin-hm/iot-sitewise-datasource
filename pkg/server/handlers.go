@@ -342,7 +342,6 @@ func (s *Server) handleAIResource(
 	ctx context.Context,
 	req *backend.CallResourceRequest,
 	sender backend.CallResourceResponseSender,
-	mode string,
 ) error {
 	// Unmarshal into unified AIQuery
 	var query models.AIQuery
@@ -350,18 +349,14 @@ func (s *Server) handleAIResource(
 		return sender.Send(errorResponse(http.StatusBadRequest, err))
 	}
 
-	// Force mode from URL/path param to avoid mismatch
-	query.Mode = mode
-
 	// Call datasource
-	resp, err := s.Datasource.HandleAIQuery(ctx, query.Mode, query.Prompt, query.Context)
+	resp, err := s.Datasource.HandleAIQuery(ctx, query.Prompt, query.Context)
 	if err != nil {
 		return sender.Send(errorResponse(http.StatusInternalServerError, err))
 	}
 
 	// Wrap in unified response
 	out := models.AIResponse{
-		Mode:     query.Mode,
 		Prompt:   query.Prompt,
 		Response: resp,
 	}

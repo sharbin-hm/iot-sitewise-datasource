@@ -11,16 +11,15 @@ import (
 // AI Client Interface
 // -----------------------------
 type Client interface {
-	Chat(ctx context.Context, prompt string) (string, error)
-	GenerateSQL(ctx context.Context, prompt string, schema string) (string, error)
+	Chat(ctx context.Context, userPrompt string, context string) (string, error)
 }
 
 // -----------------------------
 // Factory to pick correct AI Client
 // -----------------------------
-func GetAIClient(ctx context.Context, cfg models.AWSSiteWiseDataSourceSetting) (Client, error) {
+func GetAIClient(cfg models.AWSSiteWiseDataSourceSetting) (Client, error) {
 	switch cfg.AIAssistant.Provider {
-	case "azure": // ⚠ match FE provider string
+	case "azure":
 		return NewOpenAIClient(cfg)
 	case "bedrock":
 		return NewBedrockClient(cfg)
