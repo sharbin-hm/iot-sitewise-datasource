@@ -43,10 +43,15 @@ export type Mode = 'sql' | 'chat';
 // Helpers
 // ------------------
 function getResource(provider: Provider, mode: Mode): string {
-  if (provider === 'generic' || provider === 'grafanaLLM') {
-    return `ai-${mode}`; // maps both to core Grafana resources
+  switch (provider) {
+    case 'azure':
+    case 'bedrock':
+      return `${provider}-ai-${mode}`;
+    case 'generic':
+    case 'grafanaLLM':
+    default:
+      return `ai-${mode}`; // maps to core Grafana resources
   }
-  return `${provider}-ai-${mode}`; // e.g. azure-ai-sql, bedrock-ai-chat
 }
 
 // ------------------
@@ -56,13 +61,19 @@ export async function fetchAI(
   provider: Provider,
   mode: Mode,
   userQuery: string,
-  secondArg: string, // schema (for sql) OR systemPrompt (for chat)
+  context: string, // schema (for SQL) OR systemPrompt (for Chat)
   dsName?: string
 ) {
   const resource = getResource(provider, mode);
 
-  const payload =
-    mode === 'sql' ? { prompt: userQuery, schema: secondArg } : { prompt: userQuery, systemPrompt: secondArg };
+  const payload = { prompt: userQuery, context: context };
 
-  return callAIResource(resource, payload, dsName);
+  const res = await callAIResource(resource, payload, dsName);
+
+  // enforce unified contract
+  if (!res.success) {
+    throw new Error(res.error || 'Unknown error');
+  }
+
+  return res.data; // always { mode, prompt, response }
 }
