@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -114,17 +115,43 @@ func (s *Server) Dispose() {
 	close(s.closeCh)
 }
 
-func (s *Server) CallResource(ctx context.Context, req *backend.CallResourceRequest, sender backend.CallResourceResponseSender) error {
+func (s *Server) CallResource(
+	ctx context.Context,
+	req *backend.CallResourceRequest,
+	sender backend.CallResourceResponseSender,
+) error {
 	switch req.Path {
-	case "ai-chat":
-		return s.handleAIChatResource(ctx, req, sender)
-	case "ai-sql":
-		return s.handleAISQLResource(ctx, req, sender)
+	case "ai-chat", "azure-ai-chat", "bedrock-ai-chat":
+		return s.handleAIResource(ctx, req, sender, "chat")
+	case "ai-sql", "azure-ai-sql", "bedrock-ai-sql":
+		return s.handleAIResource(ctx, req, sender, "sql")
 	default:
 		// return 404
 		return sender.Send(&backend.CallResourceResponse{
 			Status: http.StatusNotFound,
-			Body:   []byte(`{"error":"not found"}`),
+			Body:   []byte(`{"success":false,"error":"not found"}`),
 		})
+	}
+}
+
+func successResponse(v interface{}) *backend.CallResourceResponse {
+	body, _ := json.Marshal(map[string]interface{}{
+		"success": true,
+		"data":    v,
+	})
+	return &backend.CallResourceResponse{
+		Status: http.StatusOK,
+		Body:   body,
+	}
+}
+
+func errorResponse(status int, err error) *backend.CallResourceResponse {
+	body, _ := json.Marshal(map[string]interface{}{
+		"success": false,
+		"error":   err.Error(),
+	})
+	return &backend.CallResourceResponse{
+		Status: status,
+		Body:   body,
 	}
 }

@@ -311,36 +311,36 @@ func (ds *Datasource) getAIClient(ctx context.Context) (ai.Client, error) {
 	}
 }
 
-func (ds *Datasource) HandleAIChatQuery(ctx context.Context, query *models.AIChatQuery) (*models.AIChatResponse, error) {
+func (ds *Datasource) HandleAIQuery(ctx context.Context, mode string, prompt string, extra string) (map[string]interface{}, error) {
 	client, err := ds.getAIClient(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	response, err := client.Chat(ctx, query.Prompt)
-	if err != nil {
-		return nil, err
+	switch mode {
+	case "chat":
+		resp, err := client.Chat(ctx, prompt)
+		if err != nil {
+			return nil, err
+		}
+		return map[string]interface{}{
+			"mode":     "chat",
+			"prompt":   prompt,
+			"response": resp,
+		}, nil
+
+	case "sql":
+		sql, err := client.GenerateSQL(ctx, prompt, extra) // extra = schema
+		if err != nil {
+			return nil, err
+		}
+		return map[string]interface{}{
+			"mode":   "sql",
+			"prompt": prompt,
+			"sql":    sql,
+		}, nil
+
+	default:
+		return nil, fmt.Errorf("unknown mode: %s", mode)
 	}
-
-	return &models.AIChatResponse{
-		Prompt:   query.Prompt,
-		Response: response,
-	}, nil
-}
-
-func (ds *Datasource) HandleAISQLQuery(ctx context.Context, query *models.AISQLQuery) (*models.AISQLResponse, error) {
-	client, err := ds.getAIClient(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	sql, err := client.GenerateSQL(ctx, query.Prompt, query.Schema)
-	if err != nil {
-		return nil, err
-	}
-
-	return &models.AISQLResponse{
-		Prompt: query.Prompt,
-		SQL:    sql,
-	}, nil
 }

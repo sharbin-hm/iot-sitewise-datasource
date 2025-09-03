@@ -13,6 +13,7 @@ export default function AIAssistant(props: any) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+
   const [provider, setProvider] = useState<Provider>('azure');
   const [mode, setMode] = useState<Mode>('sql');
 
@@ -22,11 +23,11 @@ export default function AIAssistant(props: any) {
       setError(null);
       setResult('');
 
-      const secondArg = mode === 'sql' ? buildSqlAssistantPrompt() : 'You are a helpful assistant';
+      const prompt = mode === 'sql' ? buildSqlAssistantPrompt() : 'You are a helpful assistant';
+      const response = await fetchAI(provider, mode, query, prompt, name);
 
-      const response = await fetchAI(provider, mode, query, secondArg, name);
-
-      setResult((response as any)?.response ?? response);
+      // unified backend response
+      setResult(response?.response ?? response?.sql ?? JSON.stringify(response));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred.');
     } finally {
@@ -49,28 +50,25 @@ export default function AIAssistant(props: any) {
 
   return (
     <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-      {/* Header with provider + mode selectors */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <h4 style={{ margin: 0 }}>AI Assistant</h4>
-        <div style={{ display: 'flex', gap: 12 }}>
-          <RadioButtonGroup
-            options={[
-              { label: 'Azure', value: 'azure' },
-              { label: 'Bedrock', value: 'bedrock' },
-              { label: 'Grafana LLM', value: 'grafanaLLM' },
-            ]}
-            value={provider}
-            onChange={(v) => setProvider(v as Provider)}
-          />
-          <RadioButtonGroup
-            options={[
-              { label: 'SQL', value: 'sql' },
-              { label: 'Chat', value: 'chat' },
-            ]}
-            value={mode}
-            onChange={(v) => setMode(v as Mode)}
-          />
-        </div>
+        <RadioButtonGroup
+          options={[
+            { label: 'SQL', value: 'sql' },
+            { label: 'Chat', value: 'chat' },
+          ]}
+          value={mode}
+          onChange={(v) => setMode(v as Mode)}
+        />
+        <RadioButtonGroup
+          options={[
+            { label: 'Azure OpenAI', value: 'azure' },
+            { label: 'AWS Bedrock', value: 'bedrock' },
+            { label: 'Grafana LLM', value: 'grafanaLLM' },
+          ]}
+          value={provider}
+          onChange={(v) => setProvider(v as Provider)}
+        />
       </div>
 
       {/* Query input + Generate button */}

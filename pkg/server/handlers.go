@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"math"
 	"net/http"
 
@@ -338,50 +339,36 @@ func (s *Server) handleExecuteQuery(ctx context.Context, req *backend.QueryDataR
 	}
 }
 
-func (s *Server) handleAIChatResource(ctx context.Context, req *backend.CallResourceRequest, sender backend.CallResourceResponseSender) error {
-	var query models.AIChatQuery
-	if err := json.Unmarshal(req.Body, &query); err != nil {
-		return sender.Send(&backend.CallResourceResponse{
-			Status: http.StatusBadRequest,
-			Body:   []byte(err.Error()),
-		})
+func (s *Server) handleAIResource(
+	ctx context.Context,
+	req *backend.CallResourceRequest,
+	sender backend.CallResourceResponseSender,
+	mode string,
+) error {
+	// pick query struct based on mode
+	if mode == "chat" {
+		var query models.AIChatQuery
+		if err := json.Unmarshal(req.Body, &query); err != nil {
+			return sender.Send(errorResponse(http.StatusBadRequest, err))
+		}
+		resp, err := s.Datasource.HandleAIQuery(ctx, "chat", query.Prompt, query.SystemPrompt)
+		if err != nil {
+			return sender.Send(errorResponse(http.StatusInternalServerError, err))
+		}
+		return sender.Send(successResponse(resp))
 	}
 
-	resp, err := s.Datasource.HandleAIChatQuery(ctx, &query)
-	if err != nil {
-		return sender.Send(&backend.CallResourceResponse{
-			Status: http.StatusInternalServerError,
-			Body:   []byte(err.Error()),
-		})
+	if mode == "sql" {
+		var query models.AISQLQuery
+		if err := json.Unmarshal(req.Body, &query); err != nil {
+			return sender.Send(errorResponse(http.StatusBadRequest, err))
+		}
+		resp, err := s.Datasource.HandleAIQuery(ctx, "sql", query.Prompt, query.Schema)
+		if err != nil {
+			return sender.Send(errorResponse(http.StatusInternalServerError, err))
+		}
+		return sender.Send(successResponse(resp))
 	}
 
-	out, _ := json.Marshal(resp)
-	return sender.Send(&backend.CallResourceResponse{
-		Status: http.StatusOK,
-		Body:   out,
-	})
-}
-
-func (s *Server) handleAISQLResource(ctx context.Context, req *backend.CallResourceRequest, sender backend.CallResourceResponseSender) error {
-	var query models.AISQLQuery
-	if err := json.Unmarshal(req.Body, &query); err != nil {
-		return sender.Send(&backend.CallResourceResponse{
-			Status: http.StatusBadRequest,
-			Body:   []byte(err.Error()),
-		})
-	}
-
-	resp, err := s.Datasource.HandleAISQLQuery(ctx, &query)
-	if err != nil {
-		return sender.Send(&backend.CallResourceResponse{
-			Status: http.StatusInternalServerError,
-			Body:   []byte(err.Error()),
-		})
-	}
-
-	out, _ := json.Marshal(resp)
-	return sender.Send(&backend.CallResourceResponse{
-		Status: http.StatusOK,
-		Body:   out,
-	})
+	return sender.Send(errorResponse(http.StatusBadRequest, fmt.Errorf("unknown mode: %s", mode)))
 }
