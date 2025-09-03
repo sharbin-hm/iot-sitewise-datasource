@@ -19,8 +19,6 @@ const (
 	QueryTypeListAssetProperties  = "ListAssetProperties"
 	QueryTypeListTimeSeries       = "ListTimeSeries"
 	QueryTypeExecuteQuery         = "ExecuteQuery"
-	QueryTypeAIChat               = "AIChat"
-	QueryTypeAISQL                = "AISQL"
 )
 
 const (

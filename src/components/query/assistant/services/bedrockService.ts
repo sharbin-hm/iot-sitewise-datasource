@@ -1,25 +1,24 @@
 import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
+import { accessKeyId, secretAccessKey } from './credentials';
 
 export async function fetchSqlFromBedrock(userQuery: string, systemPrompt: string): Promise<string> {
   const client = new BedrockRuntimeClient({
     region: 'us-east-1',
     credentials: {
-      accessKeyId: '<>',
-      secretAccessKey: '<>',
+      accessKeyId: accessKeyId,
+      secretAccessKey: secretAccessKey,
     },
   });
 
   const command = new InvokeModelCommand({
-    modelId: 'us.anthropic.claude-3-opus-20240229-v1:0',
+    modelId: 'anthropic.claude-3-haiku-20240307-v1:0',
     contentType: 'application/json',
     accept: 'application/json',
     body: JSON.stringify({
       anthropic_version: 'bedrock-2023-05-31',
       max_tokens: 500,
-      messages: [
-        { role: 'system', content: [{ type: 'text', text: systemPrompt }] },
-        { role: 'user', content: [{ type: 'text', text: userQuery }] },
-      ],
+      system: systemPrompt,
+      messages: [{ role: 'user', content: [{ type: 'text', text: userQuery }] }],
     }),
   });
 

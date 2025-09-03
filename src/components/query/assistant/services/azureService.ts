@@ -1,9 +1,6 @@
-export async function fetchSqlFromAzure(userQuery: string, systemPrompt: string): Promise<string> {
-  const endpoint = process.env.REACT_APP_AZURE_OPENAI_ENDPOINT;
-  const deployment = process.env.REACT_APP_AZURE_OPENAI_DEPLOYMENT;
-  const apiVersion = process.env.REACT_APP_AZURE_OPENAI_API_VERSION;
-  const apiKey = process.env.REACT_APP_AZURE_OPENAI_KEY;
+import { endpoint, deployment, apiKey, apiVersion } from './credentials';
 
+export async function fetchSqlFromAzure(userQuery: string, systemPrompt: string): Promise<string> {
   if (!endpoint || !deployment || !apiVersion || !apiKey) {
     throw new Error('Azure OpenAI environment variables are missing.');
   }
@@ -27,7 +24,8 @@ export async function fetchSqlFromAzure(userQuery: string, systemPrompt: string)
   );
 
   if (!response.ok) {
-    throw new Error(`Azure OpenAI request failed: ${response.status} ${response.statusText}`);
+    const errorBody = await response.text();
+    throw new Error(`Azure OpenAI request failed: ${response.status} ${response.statusText} - ${errorBody}`);
   }
 
   const data = await response.json();
