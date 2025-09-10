@@ -294,7 +294,7 @@ function AIAssistantConfig(props: Props) {
             <Field label="Azure Endpoint" description="Your Azure OpenAI resource endpoint" htmlFor="azureEndpoint">
               <Input
                 id="azureEndpoint"
-                placeholder="https://your-resource.openai.azure.com/"
+                placeholder="Enter Azure Endpoint"
                 value={jsonData.aiAssistant?.azureEndpoint || ''}
                 onChange={(e) => updateJsonData('azureEndpoint', e.currentTarget.value)}
               />
@@ -303,7 +303,7 @@ function AIAssistantConfig(props: Props) {
             <Field label="Deployment" description="The Azure deployment name of your model" htmlFor="azureDeployment">
               <Input
                 id="azureDeployment"
-                placeholder="Azure Deployment Name"
+                placeholder="Enter Azure Deployment Name"
                 value={jsonData.aiAssistant?.azureDeployment || ''}
                 onChange={(e) => updateJsonData('azureDeployment', e.currentTarget.value)}
               />
