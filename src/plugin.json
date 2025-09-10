@@ -42,15 +42,17 @@
   },
   "jsonData": {
     "aiAssistant": {
-      "provider": "openai",
-      "azureEndpoint": "...",
-      "azureDeployment": "...",
-      "azureApiVersion": "..."
+      "provider": "bedrock",
+      "azureEndpoint": "",
+      "azureDeployment": "",
+      "azureApiVersion": "",
+      "bedrockRegion": "",
+      "bedrockModelId": ""
     }
   },
   "secureJsonData": {
-    "azureApiKey": "...",
-    "bedrockAccessKey": "...",
-    "bedrockSecretKey": "..."
+    "azureApiKey": "",
+    "bedrockAccessKey": "",
+    "bedrockSecretKey": ""
   }
 }

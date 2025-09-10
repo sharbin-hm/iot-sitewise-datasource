@@ -203,7 +203,7 @@ function EdgeConfig(props: Props) {
 
 function AIAssistantConfig(props: Props) {
   const { options, onOptionsChange } = props;
-  const { jsonData, secureJsonData } = options;
+  const { jsonData, secureJsonData, secureJsonFields } = options;
 
   // --- helpers for clean updates ---
   const updateJsonData = (key: keyof AIAssistantDataSourceOptions, value: string) => {
@@ -224,91 +224,140 @@ function AIAssistantConfig(props: Props) {
       ...options,
       secureJsonData: {
         ...secureJsonData,
-        [key]: value, // no nesting inside aiAssistant
+        [key]: value,
       },
     });
   };
 
+  const resetSecureJsonField = (key: keyof AIAssistantSecureJsonData) => {
+    onOptionsChange({
+      ...options,
+      secureJsonFields: {
+        ...secureJsonFields,
+        [key]: false,
+      },
+      secureJsonData: {
+        ...secureJsonData,
+        [key]: '',
+      },
+    });
+  };
+
+  const renderSecureInput = (
+    key: keyof AIAssistantSecureJsonData,
+    label: string,
+    description: string,
+    placeholder: string
+  ) => {
+    const isConfigured = secureJsonFields?.[key];
+
+    if (isConfigured) {
+      return (
+        <Field label={label} description={description} htmlFor={key}>
+          <div className="gf-form">
+            <Input id={key} value="Configured" disabled />
+            <Button variant="secondary" type="button" onClick={() => resetSecureJsonField(key)} className="ml-2">
+              Edit
+            </Button>
+          </div>
+        </Field>
+      );
+    }
+
+    return (
+      <Field label={label} description={description} htmlFor={key}>
+        <Input
+          id={key}
+          type="password"
+          placeholder={placeholder}
+          value={secureJsonData?.[key] || ''}
+          onChange={(e) => updateSecureJsonData(key, e.currentTarget.value)}
+        />
+      </Field>
+    );
+  };
+
   return (
     <div className="width-30">
-      <h4 className="page-heading">AI Provider Settings</h4>
+      <ConfigSection title="AI Provider Settings" data-testid="ai-provider-settings">
+        <Field label="Provider" description="Choose the AI provider to use" htmlFor="provider">
+          <Select
+            id="provider"
+            value={providerOptions.find((o) => o.value === jsonData.aiAssistant?.provider)}
+            options={providerOptions}
+            onChange={(v) => updateJsonData('provider', v.value!)}
+          />
+        </Field>
 
-      <div className="gf-form-group">
-        <Select
-          value={providerOptions.find((o) => o.value === jsonData.aiAssistant?.provider)}
-          options={providerOptions}
-          onChange={(v) => updateJsonData('provider', v.value!)}
-        />
-      </div>
+        {jsonData.aiAssistant?.provider === 'azure' && (
+          <>
+            <Field label="Azure Endpoint" description="Your Azure OpenAI resource endpoint" htmlFor="azureEndpoint">
+              <Input
+                id="azureEndpoint"
+                placeholder="https://your-resource.openai.azure.com/"
+                value={jsonData.aiAssistant?.azureEndpoint || ''}
+                onChange={(e) => updateJsonData('azureEndpoint', e.currentTarget.value)}
+              />
+            </Field>
 
-      {jsonData.aiAssistant?.provider === 'azure' && (
-        <>
-          <div className="gf-form">
-            <Input
-              value={jsonData.aiAssistant?.azureEndpoint || ''}
-              placeholder="Azure Endpoint"
-              onChange={(e) => updateJsonData('azureEndpoint', e.currentTarget.value)}
-            />
-          </div>
-          <div className="gf-form">
-            <Input
-              value={jsonData.aiAssistant?.azureDeployment || ''}
-              placeholder="Azure Deployment Name"
-              onChange={(e) => updateJsonData('azureDeployment', e.currentTarget.value)}
-            />
-          </div>
-          <div className="gf-form">
-            <Input
-              value={jsonData.aiAssistant?.azureApiVersion || '2024-06-01-preview'}
-              placeholder="API Version"
-              onChange={(e) => updateJsonData('azureApiVersion', e.currentTarget.value)}
-            />
-          </div>
-          <div className="gf-form">
-            <Input
-              type="password"
-              placeholder="Azure API Key"
-              value={secureJsonData?.azureApiKey || ''}
-              onChange={(e) => updateSecureJsonData('azureApiKey', e.currentTarget.value)}
-            />
-          </div>
-        </>
-      )}
+            <Field label="Deployment" description="The Azure deployment name of your model" htmlFor="azureDeployment">
+              <Input
+                id="azureDeployment"
+                placeholder="Azure Deployment Name"
+                value={jsonData.aiAssistant?.azureDeployment || ''}
+                onChange={(e) => updateJsonData('azureDeployment', e.currentTarget.value)}
+              />
+            </Field>
 
-      {jsonData.aiAssistant?.provider === 'bedrock' && (
-        <>
-          <div className="gf-form">
-            <Input
-              value={jsonData.aiAssistant?.bedrockRegion || ''}
-              placeholder="AWS Region (e.g. us-east-1)"
-              onChange={(e) => updateJsonData('bedrockRegion', e.currentTarget.value)}
-            />
-          </div>
-          <div className="gf-form">
-            <Input
-              value={jsonData.aiAssistant?.bedrockModelId || ''}
-              placeholder="Model ID (e.g. anthropic.claude-3-haiku-20240307-v1:0)"
-              onChange={(e) => updateJsonData('bedrockModelId', e.currentTarget.value)}
-            />
-          </div>
-          <div className="gf-form">
-            <Input
-              type="password"
-              placeholder="AWS Access Key"
-              value={secureJsonData?.bedrockAccessKey || ''}
-              onChange={(e) => updateSecureJsonData('bedrockAccessKey', e.currentTarget.value)}
-            />
-          </div>
-          <div className="gf-form">
-            <Input
-              type="password"
-              placeholder="AWS Secret Key"
-              value={secureJsonData?.bedrockSecretKey || ''}
-              onChange={(e) => updateSecureJsonData('bedrockSecretKey', e.currentTarget.value)}
-            />
-          </div>
-        </>
-      )}
+            <Field label="API Version" description="Azure OpenAI API version" htmlFor="azureApiVersion">
+              <Input
+                id="azureApiVersion"
+                placeholder="Enter Azure API Version"
+                value={jsonData.aiAssistant?.azureApiVersion || '2024-06-01-preview'}
+                onChange={(e) => updateJsonData('azureApiVersion', e.currentTarget.value)}
+              />
+            </Field>
+
+            {renderSecureInput('azureApiKey', 'API Key', 'Azure API key (stored securely)', 'Enter Azure API Key')}
+          </>
+        )}
+
+        {jsonData.aiAssistant?.provider === 'bedrock' && (
+          <>
+            <Field label="AWS Region" description="The AWS region where Bedrock is available" htmlFor="bedrockRegion">
+              <Input
+                id="bedrockRegion"
+                placeholder="Enter AWS Region"
+                value={jsonData.aiAssistant?.bedrockRegion || ''}
+                onChange={(e) => updateJsonData('bedrockRegion', e.currentTarget.value)}
+              />
+            </Field>
+
+            <Field label="Model ID" description="The Bedrock model identifier" htmlFor="bedrockModelId">
+              <Input
+                id="bedrockModelId"
+                placeholder="Enter Azure Model ID"
+                value={jsonData.aiAssistant?.bedrockModelId || ''}
+                onChange={(e) => updateJsonData('bedrockModelId', e.currentTarget.value)}
+              />
+            </Field>
+
+            {renderSecureInput(
+              'bedrockAccessKey',
+              'Access Key',
+              'AWS Access Key (stored securely)',
+              'Enter AWS Access Key'
+            )}
+
+            {renderSecureInput(
+              'bedrockSecretKey',
+              'Secret Key',
+              'AWS Secret Key (stored securely)',
+              'Enter AWS Secret Key'
+            )}
+          </>
+        )}
+      </ConfigSection>
     </div>
   );
 }
