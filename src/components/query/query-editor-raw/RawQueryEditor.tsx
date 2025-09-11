@@ -6,7 +6,7 @@ import { SitewiseQuery, SitewiseOptions } from 'types';
 import { SitewiseCompletionProvider } from 'language/autoComplete';
 import { SqlQueryBuilder } from '../sql-query-builder/SqlQueryBuilder';
 import { defaultSitewiseQueryState, SitewiseQueryState } from '../sql-query-builder/types';
-import AIAssistant from '../assistant/AIAssistantChat';
+import AIAssistant from '../assistant';
 
 type Props = QueryEditorProps<DataSource, SitewiseQuery, SitewiseOptions>;
 
