@@ -27,7 +27,11 @@ export default function AIAssistant(props: any) {
     }
 
     const newUserMessage: Message = { role: 'user', content: query };
-    setMessages((prev) => [...prev, newUserMessage]);
+    setMessages((prev) => {
+      const updated = [...prev, newUserMessage];
+      // Keep only the last 4 messages (2 exchanges)
+      return updated.slice(-4);
+    });
     setQuery('');
     setLoading(true);
     setError(null);
@@ -37,7 +41,7 @@ export default function AIAssistant(props: any) {
       const response = await fetchAI(provider, mode, query, prompt, name);
 
       const newAssistantMessage: Message = { role: 'assistant', content: response };
-      setMessages((prev) => [...prev, newAssistantMessage]);
+      setMessages((prev) => [...prev, newAssistantMessage].slice(-4));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred.');
     } finally {

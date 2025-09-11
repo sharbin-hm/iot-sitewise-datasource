@@ -29,6 +29,7 @@ export const ChatWindow: React.FC<Props> = ({ messages, copiedIndex, onCopy, loa
         flexDirection: 'column',
         gap: 12,
         borderRadius: 8,
+        maxHeight: '400px',
       }}
     >
       {messages.map((m, i) => (
