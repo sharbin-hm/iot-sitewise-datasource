@@ -313,7 +313,7 @@ function AIAssistantConfig(props: Props) {
               <Input
                 id="azureApiVersion"
                 placeholder="Enter Azure API Version"
-                value={jsonData.aiAssistant?.azureApiVersion || '2024-06-01-preview'}
+                value={jsonData.aiAssistant?.azureApiVersion || ''}
                 onChange={(e) => updateJsonData('azureApiVersion', e.currentTarget.value)}
               />
             </Field>
